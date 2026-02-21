@@ -91,22 +91,29 @@ let adsWatched = 0;
 function checkSDK(){
   if(typeof window.show_10582145 === 'function'){
     monetagLoaded = true;
+    console.log("Monetag SDK loaded ✅");
   } else {
+    console.log("Waiting for Monetag SDK...");
     setTimeout(checkSDK, 500);
   }
 }
 window.addEventListener('DOMContentLoaded', checkSDK);
 
 /* Watch Ad */
-document.getElementById('watch-ad-btn').addEventListener('click', ()=>{
-
+function startAd(){
   if(!monetagLoaded){
     alert('Ad service not loaded yet!');
     return;
   }
 
   // Show Ad
-  show_10582145();
+  try{
+    show_10582145();
+    console.log("Ad started ✅");
+  }catch(e){
+    console.error("Error showing ad:", e);
+    return;
+  }
 
   // Prevent multiple intervals
   if(countdownInterval) clearInterval(countdownInterval);
@@ -136,15 +143,22 @@ document.getElementById('watch-ad-btn').addEventListener('click', ()=>{
       document.getElementById('ads-count-btn').textContent =
         "Ads Watched: " + adsWatched;
 
-      // 2 seconds later auto click
+      console.log("Ad completed ✅ Total watched:", adsWatched);
+
+      // 2 seconds later auto click (safe)
       setTimeout(()=>{
-        document.getElementById('watch-ad-btn').click();
+        if(monetagLoaded){
+          startAd();
+        }
       }, 2000);
     }
 
   }, 1000);
+}
 
-});
+// Click event
+document.getElementById('watch-ad-btn').addEventListener('click', startAd);
+
 </script>
 
 </body>
