@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Watcher</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  color:#fff;
+}
+
+.container{
+  background: rgba(20,20,20,0.9);
+  padding:30px;
+  border-radius:20px;
+  width:90%;
+  max-width:400px;
+  text-align:center;
+}
+
+.progress-circle{
+  width:25vw;
+  height:25vw;
+  max-width:110px;
+  max-height:110px;
+  border-radius:50%;
+  background: conic-gradient(#00ffcc 0%, rgba(0,255,204,0.1) 0%);
+  margin:20px auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  font-size:5vw;
+  max-font-size:22px;
+  color:#00ffcc;
+}
+
+button{
+  width:95%;
+  padding:14px;
+  margin-top:10px;
+  border:none;
+  border-radius:12px;
+  font-size:clamp(14px,4vw,16px);
+  font-weight:bold;
+  cursor:pointer;
+  color:#fff;
+  background: linear-gradient(45deg,#ff512f,#dd2476);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="progress-circle" id="progress-circle">
+    <span id="ads-progress">READY</span>
+  </div>
+
+  <button id="watch-ad-btn">Watch Ad</button>
+
+  <button id="ads-count-btn">Ads Watched: 0</button>
+
+</div>
+
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js'
+        data-zone='10582145'
+        data-sdk='show_10582145'></script>
+
+<script>
+let monetagLoaded = false;
+let countdownInterval = null;
+let adsWatched = 0;
+
+/* Check SDK */
+function checkSDK(){
+  if(typeof window.show_10582145 === 'function'){
+    monetagLoaded = true;
+  } else {
+    setTimeout(checkSDK, 500);
+  }
+}
+window.addEventListener('DOMContentLoaded', checkSDK);
+
+/* Watch Ad */
+document.getElementById('watch-ad-btn').addEventListener('click', ()=>{
+
+  if(!monetagLoaded){
+    alert('Ad service not loaded yet!');
+    return;
+  }
+
+  // Show Ad
+  show_10582145();
+
+  // Prevent multiple intervals
+  if(countdownInterval) clearInterval(countdownInterval);
+
+  // Start 15s countdown
+  let timeLeft = 15;
+  const progressText = document.getElementById('ads-progress');
+  const progressCircle = document.getElementById('progress-circle');
+  progressText.textContent = timeLeft + "s";
+
+  countdownInterval = setInterval(()=>{
+    timeLeft--;
+    if(timeLeft < 0) timeLeft = 0;
+
+    progressText.textContent = timeLeft > 0 ? timeLeft + "s" : "DONE";
+
+    let percent = ((15 - timeLeft) / 15) * 100;
+    progressCircle.style.background =
+      conic-gradient(#00ffcc ${percent}%, rgba(0,255,204,0.1) ${percent}%);
+
+    if(timeLeft <= 0){
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+
+      // Increment ads watched
+      adsWatched++;
+      document.getElementById('ads-count-btn').textContent =
+        "Ads Watched: " + adsWatched;
+
+      // 2 seconds later auto click
+      setTimeout(()=>{
+        document.getElementById('watch-ad-btn').click();
+      }, 2000);
+    }
+
+  }, 1000);
+
+});
+</script>
+
+</body>
+</html>
